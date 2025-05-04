@@ -4,7 +4,7 @@ import argparse
 import colorama
 from colorama import Fore, Style
 from enhanced_crawler import EnhancedCrawler
-from enhanced_search_engine import EnhancedSearchEngine
+from search_engine import EnhancedSearchEngine
 from search_evaluator import SearchEvaluator
 
 # Initialize colorama
@@ -53,6 +53,15 @@ def build_search_engine(args):
         use_query_expansion=not args.no_expansion
     )
     
+    # Load index if requested
+    if args.load_index:
+        if not search_engine.load_index():
+            print("Building index from scratch instead...")
+    
+    # Save index if requested
+    if args.save_index:
+        search_engine.save_index()
+    
     # Interactive search loop
     print(f"{Fore.YELLOW}Search engine ready! Enter queries below.{Style.RESET_ALL}")
     while True:
@@ -80,6 +89,11 @@ def evaluate_search_engine(args):
         use_query_expansion=not args.no_expansion
     )
     
+    # Load index if requested
+    if args.load_index:
+        if not search_engine.load_index():
+            print("Building index from scratch instead...")
+    
     # Create evaluator
     evaluator = SearchEvaluator(search_engine)
     
@@ -95,6 +109,10 @@ def evaluate_search_engine(args):
     
     # Plot metrics
     evaluator.plot_metrics(save_path='evaluation_results.png')
+    
+    # Save index if requested
+    if args.save_index:
+        search_engine.save_index()
     
     print(f"{Fore.GREEN}Evaluation complete! Results saved to evaluation_results.png{Style.RESET_ALL}")
 
@@ -117,6 +135,8 @@ def main():
     search_parser.add_argument('--no-bm25', action='store_true', help='Disable BM25 scoring')
     search_parser.add_argument('--no-positional', action='store_true', help='Disable positional indexing')
     search_parser.add_argument('--no-expansion', action='store_true', help='Disable query expansion')
+    search_parser.add_argument('--save-index', action='store_true', help='Save index to disk after building')
+    search_parser.add_argument('--load-index', action='store_true', help='Load index from disk instead of building')
     
     # Evaluation parser
     eval_parser = subparsers.add_parser('evaluate', help='Evaluate search engine performance')
@@ -125,6 +145,8 @@ def main():
     eval_parser.add_argument('--no-bm25', action='store_true', help='Disable BM25 scoring')
     eval_parser.add_argument('--no-positional', action='store_true', help='Disable positional indexing')
     eval_parser.add_argument('--no-expansion', action='store_true', help='Disable query expansion')
+    eval_parser.add_argument('--save-index', action='store_true', help='Save index to disk after building')
+    eval_parser.add_argument('--load-index', action='store_true', help='Load index from disk instead of building')
     
     args = parser.parse_args()
     
